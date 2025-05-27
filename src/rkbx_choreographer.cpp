@@ -338,7 +338,7 @@ Usage:
         //osc::IpEndpointName ep{ host.c_str(), port };
         IpEndpointName endpoint(host.c_str(), port);
         //oscSocket = new osc::UdpTransmitSocket(ep);
-        UdpTransmitSocket oscSocket(endpoint);
+        oscSocket = new UdpTransmitSocket(endpoint);
 
         std::cout << "OSC on " << host << ":" << port << "\n";
     }
@@ -370,6 +370,7 @@ Usage:
             osc::OutboundPacketStream p{ buf, sizeof(buf) };
             p << osc::BeginMessage("/beat") << keeper.getBeatFraction() << osc::EndMessage;
             oscSocket->Send(p.Data(), p.Size());
+            std::cout << "Beat fraction: " << keeper.getBeatFraction() << std::endl;
         }
 
         // BPM change
@@ -380,13 +381,13 @@ Usage:
                 p << osc::BeginMessage("/bpm") << *bpm << osc::EndMessage;
                 oscSocket->Send(p.Data(), p.Size());
             }
-            std::cout << "BPM changed to: " << *bpm << "\n";
+            std::cout << "BPM changed to: " << *bpm << std::endl;
         }
 
-        std::cout << "Beat fraction: " << keeper.getBeatFraction() 
-                  << ", Deck: " << (int)keeper.lastDeck() 
-                  << ", Beats: " << keeper.lastBeat() 
-                  << "\n";
+        
+                 // << ", Deck: " << (int)keeper.lastDeck() 
+                 // << ", Beats: " << keeper.lastBeat() 
+                 // << "\n";
 
         // new beat → Ableton Link
         //if (keeper.getNewBeat()) {
@@ -410,6 +411,6 @@ Usage:
         std::this_thread::sleep_for(1000000us / 120);
     }
 
-    delete oscSocket;
+    if (oscSocket) delete oscSocket;
     return 0;
 }
