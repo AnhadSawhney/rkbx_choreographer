@@ -24,6 +24,7 @@ using namespace osc;  // for OutboundPacketStream
 
 #include "offsets.h"
 #include "beatkeeper.h"
+#include "choreographer.h"
 
 // Ableton Link C++ SDK
 //#include "Link.hpp"
@@ -36,11 +37,11 @@ int main(int argc, char* argv[]) {
     std::cout << std::fixed;
     std::cout << std::setprecision(2);
     // 1) load or download offsets
-    if (!std::ifstream("offsets")) {
+    if (!std::ifstream("offsets.txt")) {
         std::cout << "Offsets not found, downloading...\n";
-        system("curl -o offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets");
+        system("curl -o offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets.txt");
     }
-    auto versions = RekordboxOffsets::loadFromFile("offsets");
+    auto versions = RekordboxOffsets::loadFromFile("offsets.txt");
     if (versions.empty()) {
         std::cerr << "No offsets parsed!\n";
         return 1;
@@ -56,10 +57,11 @@ int main(int argc, char* argv[]) {
         std::string a = argv[i];
         if (a == "-u") {
             std::cout << "Updating offsets...\n";
-            system("curl -o offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets");
+            system("curl -o offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets.txt");
             return 0;
         }
         else if (a == "-o") {
+            std::cout << "Enabling OSC\n";
             osc_enabled = true;
         }
         else if (a == "-s" && i + 1 < argc) {
@@ -92,25 +94,13 @@ Usage:
     }
     std::cout << "Targeting Rekordbox version " << target_version << "\n";
 
-    // 3) setup OSC
-    UdpTransmitSocket* oscSocket = nullptr;
-    WSAData wsa;
+    // 3) setup Choreographer
+    Choreographer choreo;
     if (osc_enabled) {
-        WSAStartup(MAKEWORD(2, 2), &wsa);
-
-        // split "127.0.0.1:6669" into IP + port
-        auto sep = dst_addr.find(':');
-        std::string host = dst_addr.substr(0, sep);
-        unsigned short port = static_cast<unsigned short>(
-            std::stoi(dst_addr.substr(sep + 1))
-            );
-
-        //osc::IpEndpointName ep{ host.c_str(), port };
-        IpEndpointName endpoint(host.c_str(), port);
-        //oscSocket = new osc::UdpTransmitSocket(ep);
-        oscSocket = new UdpTransmitSocket(endpoint);
-
-        std::cout << "OSC on " << host << ":" << port << "\n";
+        if (!choreo.setupOsc(dst_addr)) {
+            std::cerr << "Failed to setup OSC socket for " << dst_addr << "\n";
+            return 1;
+        }
     }
 
     // 4) Ableton Link
@@ -121,7 +111,7 @@ Usage:
     //link.enable(true);
 
     // 5) BeatKeeper
-    BeatKeeper keeper(it->second);
+    BeatKeeper keeper(it->second, &choreo);
 
     using clk = std::chrono::high_resolution_clock;
     auto last = clk::now();
@@ -134,8 +124,9 @@ Usage:
 
         keeper.update(delta);
 
+        /*
         // send OSC beat‐fraction
-        if (oscSocket) {
+        if (osc_enabled) {
             char buf[256];
             osc::OutboundPacketStream p{ buf, sizeof(buf) };
             p << osc::BeginMessage("/beat") << keeper.getBeatFraction() << osc::EndMessage;
@@ -145,14 +136,14 @@ Usage:
 
         // BPM change
         if (auto bpm = keeper.getBpmChanged()) {
-            if (oscSocket) {
+            if (osc_enabled) {
                 char buf[256];
                 osc::OutboundPacketStream p{ buf, sizeof(buf) };
                 p << osc::BeginMessage("/bpm") << *bpm << osc::EndMessage;
                 oscSocket->Send(p.Data(), p.Size());
             }
             std::cout << "BPM changed to: " << *bpm << std::endl;
-        }
+        }*/
 
         
                  // << ", Deck: " << (int)keeper.lastDeck() 
@@ -181,6 +172,6 @@ Usage:
         std::this_thread::sleep_for(1000000us / 120);
     }
 
-    if (oscSocket) delete oscSocket;
+    //if (oscSocket) delete oscSocket;
     return 0;
 }

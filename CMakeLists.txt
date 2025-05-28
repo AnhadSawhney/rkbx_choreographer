@@ -55,6 +55,12 @@ file(GLOB_RECURSE HEADERS "src/*.h")
 add_executable(rkbx_choreographer ${SOURCES} ${HEADERS})
 TARGET_LINK_LIBRARIES(rkbx_choreographer oscpack ${LIBS})
 
+add_custom_command(
+        TARGET rkbx_choreographer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/offsets.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/offsets.txt)
+
 # Set C++ standard
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET rkbx_choreographer PROPERTY CXX_STANDARD 20)

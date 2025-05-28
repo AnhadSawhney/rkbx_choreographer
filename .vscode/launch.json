@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Launch",
+            "name": "(Windows) Launch with OSC Output",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/out/build/x64-debug/rkbx_choreographer.exe",

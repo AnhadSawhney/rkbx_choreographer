@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "rkbx_choreographer",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "oscpack::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-oscpack-Debug-04565b6f4904f0f18c7a.json",
+					"name" : "oscpack",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "rkbx_choreographer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-rkbx_choreographer-Debug-58d9c1d8cd506eb16341.json",
+					"name" : "rkbx_choreographer",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/Anhad/Documents-Unsynced/rkbx_choreographer/out/build/x64-debug",
+		"source" : "C:/Users/Anhad/Documents-Unsynced/rkbx_choreographer"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}
