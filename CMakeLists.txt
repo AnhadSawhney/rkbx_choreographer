@@ -51,6 +51,7 @@ osc/OscOutboundPacketStream.cpp
 
 # Add executable
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "src/*.h")
 add_executable(rkbx_choreographer ${SOURCES} ${HEADERS})
 TARGET_LINK_LIBRARIES(rkbx_choreographer oscpack ${LIBS})
 
