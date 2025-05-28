@@ -71,6 +71,36 @@ private:
     SIZE_T address_;
 };
 
+// Add this specialization after your generic Value<T>
+template<>
+class Value<std::array<char, 100>> {
+public:
+    static Value<std::array<char, 100>> create(HANDLE hProc, SIZE_T base, const Pointer& p) {
+        return Value(hProc, base, p);
+    }
+
+    std::array<char, 100> read() const {
+        SIZE_T addr = base_;
+        // Walk pointer chain: at each step, read pointer at (addr + offset)
+        for (auto off : pointer_.offsets) {
+            SIZE_T tmp = 0;
+            if (!ReadProcessMemory(hProc_, (LPCVOID)(addr + off), &tmp, sizeof(tmp), nullptr))
+                return {};
+            addr = tmp;
+        }
+        addr += pointer_.final_offset;
+        std::array<char, 100> v{};
+        ReadProcessMemory(hProc_, (LPCVOID)addr, v.data(), v.size(), nullptr);
+        return v;
+    }
+private:
+    Value(HANDLE h, SIZE_T base, const Pointer& p)
+        : hProc_(h), base_(base), pointer_(p) {}
+    HANDLE hProc_;
+    SIZE_T base_;
+    Pointer pointer_;
+};
+
 // ------------------------
 // Rekordbox mirror
 // ------------------------
@@ -121,21 +151,24 @@ struct Rekordbox {
     }
 
     void refresh() {
-        // unwrap optionals (they’re guaranteed to be engaged here)
         master_bpm = (*master_bpm_val).read();
         beats1 = (*bar1_val).read() * 4 + (*beat1_val).read();
         beats2 = (*bar2_val).read() * 4 + (*beat2_val).read();
         masterdeck_index = (*masterdeck_index_val).read();
         master_beats = (masterdeck_index == 0 ? beats1 : beats2);
 
-        // New: read and store artist/track strings
+        // Use strnlen to ensure null-termination
         auto arr_to_str = [](const std::array<char, 100>& arr) {
-            return std::string(arr.data());
+            return std::string(arr.data(), strnlen(arr.data(), arr.size()));
         };
         deck1_artist = arr_to_str((*deck1_artist_val).read());
         deck1_title  = arr_to_str((*deck1_title_val).read());
         deck2_artist = arr_to_str((*deck2_artist_val).read());
         deck2_title  = arr_to_str((*deck2_title_val).read());
+        //std::cout << "Rekordbox state: "
+        //          << ", Deck 1: " << deck1_artist << " - " << deck1_title
+        //         << ", Deck 2: " << deck2_artist << " - " << deck2_title
+        //          << std::endl;
     }
 };
 
