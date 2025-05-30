@@ -1,4 +1,4 @@
-Choreograph osc messages to be sent to resolume at specific times based on what's currently being played in resolume. 
+Choreograph osc messages to be sent to resolume at specific times based on what's currently being played in rekordbox. 
 
 Auto downloads offsets if they are missing. 
 Put all your choreo in a "choreo" folder right next to the executable or specify your own folder location. 
