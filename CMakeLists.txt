@@ -55,11 +55,27 @@ file(GLOB_RECURSE HEADERS "src/*.h")
 add_executable(rkbx_choreographer ${SOURCES} ${HEADERS})
 TARGET_LINK_LIBRARIES(rkbx_choreographer oscpack ${LIBS})
 
+# Find all .tsv files in source directory
+file(GLOB TSV_FILES "${CMAKE_SOURCE_DIR}/*.tsv")
+
 add_custom_command(
+    TARGET rkbx_choreographer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/offsets.txt
+            ${CMAKE_CURRENT_BINARY_DIR}/offsets.txt
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            ${CMAKE_CURRENT_BINARY_DIR}/choreo
+)
+
+# Copy each .tsv file individually
+foreach(TSV_FILE ${TSV_FILES})
+    add_custom_command(
         TARGET rkbx_choreographer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/offsets.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/offsets.txt)
+                ${TSV_FILE}
+                ${CMAKE_CURRENT_BINARY_DIR}/choreo/
+    )
+endforeach()
 
 # Set C++ standard
 if (CMAKE_VERSION VERSION_GREATER 3.12)

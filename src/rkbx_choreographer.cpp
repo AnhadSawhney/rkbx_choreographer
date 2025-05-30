@@ -13,6 +13,7 @@
 #include <chrono>
 #include <conio.h>
 #include <winsock2.h>
+#include <filesystem>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -51,6 +52,7 @@ int main(int argc, char* argv[]) {
     bool osc_enabled = false;
     std::string src_addr = "0.0.0.0:0";
     std::string dst_addr = "127.0.0.1:6669";
+    std::string choreo_folder = "";
 
     // 2) simple flag parse
     for (int i = 1; i < argc; ++i) {
@@ -73,6 +75,9 @@ int main(int argc, char* argv[]) {
         else if (a == "-v" && i + 1 < argc) {
             target_version = argv[++i];
         }
+        else if (a == "-c" && i + 1 < argc) {
+            choreo_folder = argv[++i];
+        }
         else if (a == "-h") {
             std::cout << R"(
 Usage:
@@ -82,6 +87,7 @@ Usage:
                 "-o        enable OSC\n"
                 "-s <src>  source UDP (host:port)\n"
                 "-t <dst>  target UDP (host:port)\n"
+                "-c <dir>  choreography folder\n"
                 "Press i/k to adjust offset by ±1ms, c to quit.\n";
             return 0;
         }
@@ -94,8 +100,27 @@ Usage:
     }
     std::cout << "Targeting Rekordbox version " << target_version << "\n";
 
+    // 2.5) Determine choreography folder
+    if (choreo_folder.empty()) {
+        // Try default "choreo" folder next to executable
+        choreo_folder = "./choreo";
+        if (!std::filesystem::exists(choreo_folder) || !std::filesystem::is_directory(choreo_folder)) {
+            std::cerr << "Error: No choreography folder specified and default './choreo' not found.\n";
+            std::cerr << "Use -c <folder> to specify choreography folder.\n";
+            return 1;
+        }
+    } else {
+        // Check if specified folder exists
+        if (!std::filesystem::exists(choreo_folder) || !std::filesystem::is_directory(choreo_folder)) {
+            std::cerr << "Error: Choreography folder '" << choreo_folder << "' does not exist or is not a directory.\n";
+            return 1;
+        }
+    }
+
+    std::cout << "Using choreography folder: " << choreo_folder << "\n";
+
     // 3) setup Choreographer
-    Choreographer choreo;
+    Choreographer choreo(choreo_folder);
     if (osc_enabled) {
         if (!choreo.setupOsc(dst_addr)) {
             std::cerr << "Failed to setup OSC socket for " << dst_addr << "\n";

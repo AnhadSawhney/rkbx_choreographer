@@ -177,7 +177,6 @@ struct Rekordbox {
 // ------------------------
 class BeatKeeper {
 public:
-    // Pass Choreographer by pointer or reference
     BeatKeeper(const RekordboxOffsets& off, Choreographer* choreo)
         : rb_(off)
         , choreo_(choreo)
@@ -187,15 +186,19 @@ public:
         , offset_micros_(0.0f)
         , last_bpm_(0.0f)
         , new_beat_(false)
-        , last_deck1_artist_()
-        , last_deck1_title_()
-        , last_deck2_artist_()
-        , last_deck2_title_()
+        , last_master_artist_()
+        , last_master_title_()
+        , last_update_time_(std::chrono::high_resolution_clock::now())
     {
     }
 
     void update(std::chrono::microseconds delta) {
         rb_.refresh();
+        
+        auto current_time = std::chrono::high_resolution_clock::now();
+        auto actual_delta = std::chrono::duration_cast<std::chrono::microseconds>(
+            current_time - last_update_time_);
+        last_update_time_ = current_time;
 
         // --- BPM change ---
         if (rb_.master_bpm != last_bpm_) {
@@ -203,61 +206,49 @@ public:
             if (choreo_) choreo_->onBpmChanged(rb_.master_bpm);
         }
 
-        // --- Deck 1 artist change ---
-        if (rb_.deck1_artist != last_deck1_artist_) {
-            last_deck1_artist_ = rb_.deck1_artist;
-            if (choreo_) choreo_->onArtistChanged(1, rb_.deck1_artist);
-        }
-        // --- Deck 1 title change ---
-        if (rb_.deck1_title != last_deck1_title_) {
-            last_deck1_title_ = rb_.deck1_title;
-            if (choreo_) choreo_->onTrackChanged(1, rb_.deck1_title);
-        }
-        // --- Deck 2 artist change ---
-        if (rb_.deck2_artist != last_deck2_artist_) {
-            last_deck2_artist_ = rb_.deck2_artist;
-            if (choreo_) choreo_->onArtistChanged(2, rb_.deck2_artist);
-        }
-        // --- Deck 2 title change ---
-        if (rb_.deck2_title != last_deck2_title_) {
-            last_deck2_title_ = rb_.deck2_title;
-            if (choreo_) choreo_->onTrackChanged(2, rb_.deck2_title);
-        }
-
-        // --- Deck switch ---
-        if (rb_.masterdeck_index != last_masterdeck_index_) {
+        // --- Deck switch or track change on master deck ---
+        std::string current_master_artist = (rb_.masterdeck_index == 0) ? rb_.deck1_artist : rb_.deck2_artist;
+        std::string current_master_title = (rb_.masterdeck_index == 0) ? rb_.deck1_title : rb_.deck2_title;
+        
+        if (rb_.masterdeck_index != last_masterdeck_index_ || 
+            current_master_artist != last_master_artist_ || 
+            current_master_title != last_master_title_) {
+            
             last_masterdeck_index_ = rb_.masterdeck_index;
+            last_master_artist_ = current_master_artist;
+            last_master_title_ = current_master_title;
             last_beat_ = rb_.master_beats;
+            
+            if (choreo_) {
+                choreo_->onMasterTrackChanged(current_master_artist, current_master_title);
+                choreo_->onNewBeat(rb_.master_beats);
+            }
         }
 
-        // --- New beat ---
+        // --- Beat tracking ---
         if (std::abs(rb_.master_beats - last_beat_) > 0) {
             last_beat_ = rb_.master_beats;
             beat_fraction_ = 0.0f;
             new_beat_ = true;
-            if (choreo_) choreo_->onBeatFraction(0.0f);
+            
+            if (choreo_) choreo_->onNewBeat(rb_.master_beats);
         } else {
-            // Always send beat fraction update
             float beats_per_micro = rb_.master_bpm / 60.0f / 1'000'000.0f;
-            beat_fraction_ = std::fmod(beat_fraction_ + delta.count() * beats_per_micro, 1.0f);
-            if (choreo_) choreo_->onBeatFraction(getBeatFraction());
+            beat_fraction_ = std::fmod(beat_fraction_ + actual_delta.count() * beats_per_micro, 1.0f);
         }
+        
+        // Always send beat fraction update with delta time
+        if (choreo_) choreo_->onBeatFraction(getBeatFraction(), actual_delta);
     }
 
-    // The rest of the methods can remain or be removed if not needed by main
     float getBeatFraction() const {
         float beats_per_micro = rb_.master_bpm / 60.0f / 1'000'000.0f;
-        return std::fmod(beat_fraction_
-            + offset_micros_ * beats_per_micro
-            + 1.0f, 1.0f);
+        return std::fmod(beat_fraction_ + offset_micros_ * beats_per_micro + 1.0f, 1.0f);
     }
 
     void changeOffsetMs(float ms) {
-        offset_micros_ += ms * 1000.0f; // ms→μs
+        offset_micros_ += ms * 1000.0f;
     }
-
-    int32_t lastBeat() const { return last_beat_; }
-    uint8_t lastDeck() const { return last_masterdeck_index_; }
 
 private:
     Rekordbox rb_;
@@ -265,13 +256,10 @@ private:
     int32_t   last_beat_;
     float     beat_fraction_;
     uint8_t   last_masterdeck_index_;
-    float     offset_micros_;   // in μs
+    float     offset_micros_;
     float     last_bpm_;
     bool      new_beat_;
-
-    // For change detection
-    std::string last_deck1_artist_;
-    std::string last_deck1_title_;
-    std::string last_deck2_artist_;
-    std::string last_deck2_title_;
+    std::string last_master_artist_;
+    std::string last_master_title_;
+    std::chrono::high_resolution_clock::time_point last_update_time_;
 };

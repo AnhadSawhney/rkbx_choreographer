@@ -1,0 +1,20 @@
+#example choreo format								
+#lines that begin with # are ignored (comment)								
+#one file per song, but it can match with multiple names and multiple artist names. Whitespace and special characters are stripped from both rekordbox and whatever you type here before the song and artist name are compared. 								
+#Match Song	Example Song Name	Example Alternate Song Name (optional)						
+#Match Artist	Example Artist Name	Example Alternate Artist Name (optional)						
+#Beat number to send at, or bar.beat	Beat fraction to send at (0-1)	osc address pattern 1	osc data 1	osc type 1	osc address pattern 2	osc data 2	osc type 2	etc.
+#1	0	/osc/message/to/send1	123	i				
+#2.1	0	/osc/message/to/send2	123	i	/also/send/this/at/the/same/time	456	i	
+								
+#each file must have match song and match artist at the top (excluding comments). 								
+Match Song	Snakebite							
+Match Artist	Viperactive							
+6.1	0	/composition/layers/1/clips/2/connect	1	i				
+7.1	0	/composition/layers/1/clips/3/connect	1	i				
+8.1	0	/composition/layers/1/clips/2/connect	1	i				
+9.1	0	/composition/layers/1/clips/3/connect	1	i
+"10.1"	0	/composition/layers/1/clips/2/connect	1	i				
+11.1	0	/composition/layers/1/clips/3/connect	1	i
+12.1	0	/composition/layers/1/clips/2/connect	1	i				
+13.1	0	/composition/layers/1/clips/3/connect	1	i				
