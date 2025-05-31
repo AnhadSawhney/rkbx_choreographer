@@ -13,6 +13,8 @@
 
 #include "osc/OscOutboundPacketStream.h"
 
+#include "beat_utils.h"
+
 /// If defined, wrappers BeginBundleImmediate/EndBundle are emitted
 #define CHOREO_BUNDLE_MESSAGES
 
@@ -50,10 +52,11 @@ public:
     /// Update by beat position. deltaBeat in beats
     /// Adds messages to `p`. Returns true if any were added.
     bool update(int beat, double frac,
-             double deltaBeat,
-             osc::OutboundPacketStream& p)
+         double deltaBeat,
+         osc::OutboundPacketStream& p)
     {
-        double cur = beat + frac;
+        // Convert 0-indexed beat to 1-indexed beat number for consistency
+        double cur = beat + frac + 1.0;  // +1 to convert to 1-indexed
         double w0  = cur - deltaBeat;
         double w1  = cur + deltaBeat;
 
@@ -98,21 +101,21 @@ public:
 
     /// Wrapper by time in seconds (delta in sec, bpm)
     bool updateWithTime(double currentTimeSec,
-                    double deltaTimeSec,
-                    double bpm,
-                    osc::OutboundPacketStream& p)
+                double deltaTimeSec,
+                double bpm,
+                osc::OutboundPacketStream& p)
     {
-        double beatsNow   = currentTimeSec * bpm / 60.0;
-        int    beatInt    = static_cast<int>(std::floor(beatsNow));
-        double beatFrac   = beatsNow - beatInt;
+        double beatNumberNow = timeToBeatNumber(currentTimeSec, bpm);
+        int    beatInt    = static_cast<int>(std::floor(beatNumberNow));
+        double beatFrac   = beatNumberNow - beatInt;
         double deltaBeats = deltaTimeSec * bpm / 60.0;
-        return update(beatInt, beatFrac, deltaBeats, p);
+        return update(beatInt - 1, beatFrac, deltaBeats, p); // -1 to convert back to 0-indexed for update method
     }
 
     /// Wrapper with int beat, double frac, and delta in seconds
     bool updateWithMixed(int beat, double frac,
-                double deltaTimeSec, double bpm,
-                osc::OutboundPacketStream& p)
+            double deltaTimeSec, double bpm,
+            osc::OutboundPacketStream& p)
     {
         double deltaBeats = deltaTimeSec * bpm / 60.0;
         return update(beat, frac, deltaBeats, p);
@@ -230,7 +233,17 @@ private:
                     v.insert(v.end(), pl.msgs.begin(), pl.msgs.end());
                 }
                 for (auto const& kv : blockMap) {
-                    out << kv.first;
+                    // Split time back into bar.beat and fraction parts
+                    double totalTime = kv.first;
+                    int beatNumber = static_cast<int>(std::floor(totalTime));
+                    double fractionPart = totalTime - beatNumber;
+                    
+                    // Convert beat number to bar.beat notation
+                    auto [bar, beat] = beatNumberToBarBeat(beatNumber);
+                    
+                    // Write bar.beat and fraction as separate columns
+                    out << bar << '.' << beat << '\t' << fractionPart;
+                    
                     for (auto const& m : kv.second) {
                         out << '\t' << m.address
                             << '\t' << m.data
@@ -263,14 +276,14 @@ private:
 
     /// c0: beat or bar.beat, c1: fractional beats [0,1)
     static double parseTime(const std::string& c0,
-                            const std::string& c1)
+                        const std::string& c1)
     {
         double base;
         auto dot = c0.find('.');
         if (dot != std::string::npos) {
             int bar  = std::stoi(c0.substr(0, dot));
             int beat = std::stoi(c0.substr(dot+1));
-            base = (bar - 1) * 4.0 + static_cast<double>(beat);
+            base = barBeatToBeatNumber(bar, beat);
         } else {
             base = std::stod(c0);
         }

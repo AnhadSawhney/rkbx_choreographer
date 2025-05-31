@@ -39,6 +39,7 @@ public:
     void onNewBeat(int beatNumber) {
         currentBeat_ = beatNumber;
         lastBeatTime_ = std::chrono::high_resolution_clock::now();
+        //std::cout << "Beat: " << currentBeat_ << "\n";
     }
 
     // Callback: Beat fraction changed

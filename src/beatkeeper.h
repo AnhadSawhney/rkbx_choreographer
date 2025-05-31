@@ -8,6 +8,7 @@
 
 #include "offsets.h"
 #include "choreographer.h"
+#include "beat_utils.h"
 
 // ------------------------
 // Utilities to open process
@@ -152,8 +153,16 @@ struct Rekordbox {
 
     void refresh() {
         master_bpm = (*master_bpm_val).read();
-        beats1 = (*bar1_val).read() * 4 + (*beat1_val).read();
-        beats2 = (*bar2_val).read() * 4 + (*beat2_val).read();
+        
+        // Use the static conversion methods
+        int bar1 = (*bar1_val).read();
+        int beat1 = (*beat1_val).read();
+        int bar2 = (*bar2_val).read();
+        int beat2 = (*beat2_val).read();
+        
+        beats1 = barBeatToBeatNumber(bar1, beat1);
+        beats2 = barBeatToBeatNumber(bar2, beat2);
+        
         masterdeck_index = (*masterdeck_index_val).read();
         master_beats = (masterdeck_index == 0 ? beats1 : beats2);
 
@@ -175,6 +184,7 @@ struct Rekordbox {
 // ------------------------
 // Beat‐tracking logic
 // ------------------------
+
 class BeatKeeper {
 public:
     BeatKeeper(const RekordboxOffsets& off, Choreographer* choreo)

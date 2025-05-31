@@ -60,7 +60,7 @@ file(GLOB TSV_FILES "${CMAKE_SOURCE_DIR}/*.tsv")
 
 add_custom_command(
     TARGET rkbx_choreographer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/offsets.txt
             ${CMAKE_CURRENT_BINARY_DIR}/offsets.txt
     COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -71,7 +71,7 @@ add_custom_command(
 foreach(TSV_FILE ${TSV_FILES})
     add_custom_command(
         TARGET rkbx_choreographer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${TSV_FILE}
                 ${CMAKE_CURRENT_BINARY_DIR}/choreo/
     )
