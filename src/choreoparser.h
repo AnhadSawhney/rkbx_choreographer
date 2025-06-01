@@ -55,9 +55,10 @@ public:
          double deltaBeat,
          osc::OutboundPacketStream& p)
     {
-        // Convert 0-indexed beat to 1-indexed beat number for consistency
-        double cur = beat + frac + 1.0;  // +1 to convert to 1-indexed
-        double w0  = cur - deltaBeat;
+        // std::cout << ", deltaBeat: " << deltaBeat << "\n"; 
+        // deltabeat usually around 0.4
+        double cur = beat + frac;
+        double w0  = cur; // - deltaBeat;
         double w1  = cur + deltaBeat;
 
 #ifdef CHOREO_BUNDLE_MESSAGES
@@ -109,7 +110,7 @@ public:
         int    beatInt    = static_cast<int>(std::floor(beatNumberNow));
         double beatFrac   = beatNumberNow - beatInt;
         double deltaBeats = deltaTimeSec * bpm / 60.0;
-        return update(beatInt - 1, beatFrac, deltaBeats, p); // -1 to convert back to 0-indexed for update method
+        return update(beatInt, beatFrac, deltaBeats, p);
     }
 
     /// Wrapper with int beat, double frac, and delta in seconds
@@ -148,6 +149,9 @@ private:
         int lineStage = 0;
         std::string line;
         while (std::getline(in, line)) {
+            // remove quotation marks from the line
+            line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
+            
             if (line.front() == '#') {
                 // flush any pending rows
                 if (!currentBlock.rows.empty()) {
@@ -159,8 +163,6 @@ private:
                 continue;
             }
 
-            // remove quotation marks from the line
-            line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
             // Continue if the line is empty or contains only tabs/whitespace
             if (line.empty() || std::all_of(line.begin(), line.end(), [](char c){ return std::isspace((unsigned char)c); }))
                 continue;
@@ -173,20 +175,25 @@ private:
                 elements_.push_back({true, line, {}});
                 ++lineStage;
                 continue;
-            }
-            if (lineStage == 2) {
-                // header row
-                elements_.push_back({true, line, {}});
-                ++lineStage;
-                continue;
-            }
-            else {
+            } else {
                 // data row
                 //std::cout << "Parsing data row: " << line << '\n';
 
                 auto cols = split(line, '\t');
+
+                // remove empty elements of cols
+                cols.erase(std::remove_if(cols.begin(), cols.end(),
+                    [](const std::string& s) { return s.empty(); }), cols.end());
+
                 if (cols.size() < 5 || (cols.size()-2)%3 != 0) {
-                    throw std::runtime_error("Row in " + fn + "has wrong number of populated cells: " + line);
+                    // print out all the elements of cols
+                    std::cout << "Columns: ";
+                    for (const auto& col : cols) {
+                        std::cout << col << "|";
+                    }
+                    std::cout << '\n';
+
+                    throw std::runtime_error("Row in " + fn + "\nhas wrong number of populated cells");
                 }
                 double t = parseTime(cols[0], cols[1]);
                 ParsedLine pl{t,{}};
@@ -221,7 +228,10 @@ private:
     /// Overwrite original file, sorting blocks and preserving comments
     void writeOptimizedFile(const std::string& fn) const {
         std::ofstream out(fn);
-        if (!out) throw std::runtime_error("Cannot write " + fn);
+        if (!out) {
+            std::cout << "Cannot open " << fn << " for writing\n";
+            return; // don't throw an error, its not terrible if we can't write optimized file
+        }
         for (auto const& elem : elements_) {
             if (elem.isCommentOrHeader) {
                 out << elem.text << '\n';
@@ -300,7 +310,7 @@ private:
             default: /* extend for 'd','b',... */ break;
         }
 
-        //std::cout << "Pushing OSC arg: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
+        std::cout << "OSC: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
     }
 
     static std::string normalize(std::string s) {

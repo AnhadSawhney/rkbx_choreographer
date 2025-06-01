@@ -10,6 +10,8 @@
 #include "ip/IpEndpointName.h"
 #include "choreoparser.h"
 
+#include "beat_utils.h"
+
 using namespace osc;
 
 class Choreographer {
@@ -39,7 +41,12 @@ public:
     void onNewBeat(int beatNumber) {
         currentBeat_ = beatNumber;
         lastBeatTime_ = std::chrono::high_resolution_clock::now();
-        //std::cout << "Beat: " << currentBeat_ << "\n";
+        // convert the current beat to bar.beat and print it using beatNumberToBarBeat(currentBeat_);
+
+        //auto [bar, beat] = beatNumberToBarBeat(beatNumber);
+                    
+        // Write bar.beat and fraction as separate columns
+        //std::cout << "Bar.beat:" << bar << '.' << beat << '\n';
     }
 
     // Callback: Beat fraction changed
@@ -54,6 +61,11 @@ public:
         
         if (activeChoreo->update(currentBeat_, static_cast<double>(beatFraction), deltaBeats, p)) {
             oscSocket->Send(p.Data(), p.Size());
+            
+            auto [bar, beat] = beatNumberToBarBeat(currentBeat_);
+                    
+            // Write bar.beat and fraction as separate columns
+            //std::cout << "At:" << bar << '.' << beat << "\n";
         }
     }
 

@@ -2,14 +2,16 @@
 #include <utility>
 #include <cstdint>
 
+// https://www.desmos.com/calculator/tqpscsp9jd
+
 // Beat conversion utilities
 static inline int32_t barBeatToBeatNumber(int bar, int beat) {
     return (bar - 1) * 4 + beat;
 }
 
 static inline std::pair<int, int> beatNumberToBarBeat(int32_t beatNumber) {
-    int bar = ((beatNumber - 1) / 4) + 1;
-    int beat = ((beatNumber - 1) % 4) + 1;
+    int bar = (beatNumber-1)/4 + 1;
+    int beat = ((beatNumber-1) % 4) + 1;
     return {bar, beat};
 }
 
