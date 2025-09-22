@@ -216,6 +216,15 @@ public:
             if (choreo_) choreo_->onBpmChanged(rb_.master_bpm);
         }
 
+        /*std::cout << "BPM: " << rb_.master_bpm 
+                  << ", Deck 1: " << rb_.deck1_artist << " - " << rb_.deck1_title 
+                  << ", Deck 2: " << rb_.deck2_artist << " - " << rb_.deck2_title 
+                  << ", Master Deck: " << (int)rb_.masterdeck_index 
+                  << ", Beats1: " << rb_.beats1 
+                  << ", Beats2: " << rb_.beats2 
+                  << ", Master Beats: " << rb_.master_beats
+                  << "\n";*/
+
         // --- Deck switch or track change on master deck ---
         std::string current_master_artist = (rb_.masterdeck_index == 0) ? rb_.deck1_artist : rb_.deck2_artist;
         std::string current_master_title = (rb_.masterdeck_index == 0) ? rb_.deck1_title : rb_.deck2_title;

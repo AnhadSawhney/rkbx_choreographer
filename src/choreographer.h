@@ -55,17 +55,23 @@ public:
         
         // Calculate delta in beats
         double deltaBeats = deltaTime.count() * currentBpm_ / 60.0 / 1'000'000.0;
+        double currentTime = currentBeat_ + static_cast<double>(beatFraction);
         
         char buf[1024];
         osc::OutboundPacketStream p{ buf, sizeof(buf) };
         
         if (activeChoreo->update(currentBeat_, static_cast<double>(beatFraction), deltaBeats, p)) {
-            oscSocket->Send(p.Data(), p.Size());
-            
-            auto [bar, beat] = beatNumberToBarBeat(currentBeat_);
-                    
-            // Write bar.beat and fraction as separate columns
-            //std::cout << "At:" << bar << '.' << beat << "\n";
+            // Check if we should send this message based on duplicate filtering
+            if (shouldSendMessage(p, currentTime)) {
+                oscSocket->Send(p.Data(), p.Size());
+                updateLastMessage(p, currentTime);
+                
+                auto [bar, beat] = beatNumberToBarBeat(currentBeat_);
+                //std::cout << "Send at: " << bar << '.' << beat << '.' << static_cast<int>(beatFraction * 100) << " dt: " << deltaTime << '\n';
+            }
+        } else {
+            // flush the stream and buffer
+            p.Clear();
         }
     }
 
@@ -83,6 +89,10 @@ public:
     // Callback: Track/Artist changed on master deck
     void onMasterTrackChanged(const std::string& artist, const std::string& title) {
         std::cout << "Master track changed: " << artist << " - " << title << "\n";
+        
+        // Clear last message when track changes
+        lastMessageData_.clear();
+        lastMessageTime_ = -999.0;
         
         // Find matching choreo parser
         activeChoreo = nullptr;
@@ -114,6 +124,24 @@ private:
         }
     }
 
+    bool shouldSendMessage(const osc::OutboundPacketStream& p, double currentTime) {
+        const double tolerance = 0.125; // beats
+        
+        // If no previous message or outside tolerance window, send it
+        if (lastMessageData_.empty() || std::abs(currentTime - lastMessageTime_) > tolerance) {
+            return true;
+        }
+        
+        // Check if packet data is identical
+        std::vector<char> currentData(p.Data(), p.Data() + p.Size());
+        return currentData != lastMessageData_;
+    }
+    
+    void updateLastMessage(const osc::OutboundPacketStream& p, double currentTime) {
+        lastMessageData_.assign(p.Data(), p.Data() + p.Size());
+        lastMessageTime_ = currentTime;
+    }
+
     UdpTransmitSocket* oscSocket = nullptr;
     std::vector<std::unique_ptr<choreo::ChoreoParser>> choreoParsers;
     choreo::ChoreoParser* activeChoreo = nullptr;
@@ -122,4 +150,9 @@ private:
     int currentBeat_ = 0;
     float currentBpm_ = 120.0f;
     std::chrono::high_resolution_clock::time_point lastBeatTime_;
+    
+    // Duplicate message filtering
+    std::vector<char> lastMessageData_;
+    double lastMessageTime_ = -999.0;
+    static constexpr double MESSAGE_TOLERANCE = 0.5; // beats
 };

@@ -149,42 +149,6 @@ Usage:
 
         keeper.update(delta);
 
-        /*
-        // send OSC beat‐fraction
-        if (osc_enabled) {
-            char buf[256];
-            osc::OutboundPacketStream p{ buf, sizeof(buf) };
-            p << osc::BeginMessage("/beat") << keeper.getBeatFraction() << osc::EndMessage;
-            oscSocket->Send(p.Data(), p.Size());
-            std::cout << "Beat fraction: " << keeper.getBeatFraction() << std::endl;
-        }
-
-        // BPM change
-        if (auto bpm = keeper.getBpmChanged()) {
-            if (osc_enabled) {
-                char buf[256];
-                osc::OutboundPacketStream p{ buf, sizeof(buf) };
-                p << osc::BeginMessage("/bpm") << *bpm << osc::EndMessage;
-                oscSocket->Send(p.Data(), p.Size());
-            }
-            std::cout << "BPM changed to: " << *bpm << std::endl;
-        }*/
-
-        
-                 // << ", Deck: " << (int)keeper.lastDeck() 
-                 // << ", Beats: " << keeper.lastBeat() 
-                 // << "\n";
-
-        // new beat → Ableton Link
-        //if (keeper.getNewBeat()) {
-        //    double current = std::round(link.clock().beatAtTime(4.0));
-        //    double target = std::fmod((keeper.lastBeat() % 4) - std::fmod(current, 4.0) + 4.0, 4.0)
-        //        + current - 1.0;
-        //    link.captureAppSessionState(state);
-        //    state.requestBeatAtTime(target, link.clock().micros(), 4.0);
-        //    link.commitAppSessionState(state);
-        //}
-
         // console update
         if (_kbhit()) {
             char c = _getch();
@@ -194,7 +158,7 @@ Usage:
         }
 
         using namespace std::chrono_literals;
-        std::this_thread::sleep_for(1000000us / 120);
+        std::this_thread::sleep_for(1000000us / 240);
     }
 
     //if (oscSocket) delete oscSocket;

@@ -55,16 +55,19 @@ public:
          double deltaBeat,
          osc::OutboundPacketStream& p)
     {
-        // std::cout << ", deltaBeat: " << deltaBeat << "\n"; 
+        //std::cout << ", deltaBeat: " << deltaBeat << "\n"; 
         // deltabeat usually around 0.4
         double cur = beat + frac;
-        double w0  = cur; // - deltaBeat;
-        double w1  = cur + deltaBeat;
+        //prefer sending messages late instead of early
+        double w0  = cur - deltaBeat;
+        double w1  = cur; // + deltaBeat;
 
 #ifdef CHOREO_BUNDLE_MESSAGES
         p << osc::BeginBundleImmediate;
 #endif
         bool sent = false;
+
+        // TODO: sometimes this seems to be finding messages that are outside of the deltatime window and still executing them.
 
         // Binary search for first instruction >= w0 (search entire list)
         Instruction probe_w0{w0, {}};
@@ -151,7 +154,7 @@ private:
         while (std::getline(in, line)) {
             // remove quotation marks from the line
             line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
-            
+
             if (line.front() == '#') {
                 // flush any pending rows
                 if (!currentBlock.rows.empty()) {
@@ -310,7 +313,7 @@ private:
             default: /* extend for 'd','b',... */ break;
         }
 
-        std::cout << "OSC: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
+        //std::cout << "OSC: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
     }
 
     static std::string normalize(std::string s) {
