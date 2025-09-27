@@ -1,0 +1,13 @@
+# ninja log v6
+25	229	7802895991317247	CMakeFiles/oscpack.dir/osc/OscTypes.cpp.obj	f30f6383165aea4d
+42	330	7802895991490459	CMakeFiles/oscpack.dir/osc/OscOutboundPacketStream.cpp.obj	63cd718b50e38d2d
+7	235	7802895991133784	CMakeFiles/oscpack.dir/ip/IpEndpointName.cpp.obj	aed9ce39e053cf
+20	915	7802895991263617	CMakeFiles/oscpack.dir/ip/win32/UdpSocket.cpp.obj	bc4bf226030cca4c
+15	503	7802895991225992	CMakeFiles/oscpack.dir/ip/win32/NetworkingUtils.cpp.obj	6098533aa542e482
+915	966	7802896000215330	oscpack.lib	f05e10f1281d9731
+31	316	7802895991376588	CMakeFiles/oscpack.dir/osc/OscReceivedElements.cpp.obj	b3b1da497a8b61ec
+35	652	7802895991424602	CMakeFiles/oscpack.dir/osc/OscPrintReceivedElements.cpp.obj	61fb22af0c4cee26
+46	3766	7806585734675607	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1c4f09bb3549fcdb
+3767	4072	7806585771893991	rkbx_choreographer.exe	45caa998c163db3a
+9	3687	7806597893164495	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1c4f09bb3549fcdb
+3688	3939	7806597929956910	rkbx_choreographer.exe	45caa998c163db3a

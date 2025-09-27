@@ -318,18 +318,25 @@ private:
 
     static std::string normalize(std::string s) {
         std::string out;
-        for (char c: s) if (std::isalnum((unsigned char)c))
+        for (char c: s) if (std::isalnum((unsigned char)c)) {
             out.push_back(std::tolower((unsigned char)c));
+        }
         return out;
     }
 
-    static bool anyMatch(const std::vector<std::string>& pats,
-                         const std::string& text)
-    {
-        auto norm = normalize(text);
-        for (auto const& p: pats)
-            if (normalize(p) == norm)
+    static bool anyMatch(const std::vector<std::string>& pats, const std::string& text) {
+        auto normtext = normalize(text);
+        if (normtext.empty()) return false; 
+
+        for (auto const& p: pats) {
+            if (p.empty()) continue;
+            //std::cout << "Matching pattern: " << normalize(p) << " against text: " << text << " normalized: " << normtext << "\n";
+
+            if (normtext.find(normalize(p)) != std::string::npos) {
+                //std::cout << "Pattern matched!\n";
                 return true;
+            }
+        }
         return false;
     }
 };

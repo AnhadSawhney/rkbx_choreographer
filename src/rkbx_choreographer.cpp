@@ -48,8 +48,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::string target_version = versions.rbegin()->first;
-
-    bool osc_enabled = false;
     std::string src_addr = "0.0.0.0:0";
     std::string dst_addr = "127.0.0.1:6669";
     std::string choreo_folder = "";
@@ -59,12 +57,8 @@ int main(int argc, char* argv[]) {
         std::string a = argv[i];
         if (a == "-u") {
             std::cout << "Updating offsets...\n";
-            system("curl -o offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets.txt");
+            system("curl offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets.txt");
             return 0;
-        }
-        else if (a == "-o") {
-            std::cout << "Enabling OSC\n";
-            osc_enabled = true;
         }
         else if (a == "-s" && i + 1 < argc) {
             src_addr = argv[++i];
@@ -84,7 +78,6 @@ Usage:
   -h        this help
   -u        fetch latest offsets and exit
   -v <ver>  target RB version (default: )" << target_version << "\n"
-                "-o        enable OSC\n"
                 "-s <src>  source UDP (host:port)\n"
                 "-t <dst>  target UDP (host:port)\n"
                 "-c <dir>  choreography folder\n"
@@ -121,11 +114,9 @@ Usage:
 
     // 3) setup Choreographer
     Choreographer choreo(choreo_folder);
-    if (osc_enabled) {
-        if (!choreo.setupOsc(dst_addr)) {
-            std::cerr << "Failed to setup OSC socket for " << dst_addr << "\n";
-            return 1;
-        }
+    if (!choreo.setupOsc(dst_addr)) {
+        std::cerr << "Failed to setup OSC socket for " << dst_addr << "\n";
+        return 1;
     }
 
     // 4) Ableton Link

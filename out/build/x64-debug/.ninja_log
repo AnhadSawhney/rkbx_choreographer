@@ -1,5 +1,5 @@
 # ninja log v6
-44	3241	7704480012250574	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+8	3140	7802889890316979	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
 59	464	7700106535921155	CMakeFiles/rkbx_choreographer.dir/include/osc/OscTypes.cpp.obj	4d93623e334571db
 48	635	7700106535826018	CMakeFiles/rkbx_choreographer.dir/include/osc/OscReceivedElements.cpp.obj	142ee616ad1558e5
 7	553	7700106535409600	CMakeFiles/rkbx_choreographer.dir/include/ip/IpEndpointName.cpp.obj	1385b432763c8fbf
@@ -15,8 +15,18 @@
 41	817	7700115875573267	CMakeFiles/oscpack.dir/ip/win32/NetworkingUtils.cpp.obj	16b5828dbe166bfb
 1173	1256	7700115886877787	oscpack.lib	f05e10f1281d9731
 65	957	7700115875798771	CMakeFiles/oscpack.dir/osc/OscPrintReceivedElements.cpp.obj	7e28f591bdb45f5f
-3242	3714	7704480044223760	rkbx_choreographer.exe	dba357fca696babf
-13	4588	7802809849028735	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
-4589	5180	7802809894788590	rkbx_choreographer.exe	dba357fca696babf
-8	4972	7802813789283041	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
-4974	5940	7802813838935994	rkbx_choreographer.exe	dba357fca696babf
+8	285	7802896561239776	rkbx_choreographer.exe	a751d2215120722c
+34	4207	7806586907609948	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+4208	4729	7806586949347722	rkbx_choreographer.exe	dba357fca696babf
+5	2774	7806587499912898	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+2775	3094	7806587527599983	rkbx_choreographer.exe	dba357fca696babf
+53	3377	7806587923641258	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+3378	3819	7806587956888043	rkbx_choreographer.exe	dba357fca696babf
+8	4195	7806588855534450	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+4196	4620	7806588897419148	rkbx_choreographer.exe	dba357fca696babf
+7	3635	7806590813697592	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+3637	4083	7806590849993039	rkbx_choreographer.exe	dba357fca696babf
+9	3732	7806591446275292	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+3733	4205	7806591483510413	rkbx_choreographer.exe	dba357fca696babf
+7	2819	7806595380609683	CMakeFiles/rkbx_choreographer.dir/src/rkbx_choreographer.cpp.obj	1e07050bbc4d7b3
+2820	3184	7806595408731247	rkbx_choreographer.exe	dba357fca696babf
