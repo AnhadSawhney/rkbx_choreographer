@@ -10,6 +10,7 @@
 #include <cctype>
 #include <stdexcept>
 #include <cmath>
+#include <cstdint> // new include for int64_t
 
 #include "osc/OscOutboundPacketStream.h"
 
@@ -42,6 +43,11 @@ public:
         writeOptimizedFile(filename);
         nextIndex_ = 0;
     }
+
+    // Getter for beatgrid origin (sample index relative to start of song)
+    int64_t getOriginSample() const { return origin_sample_; }
+    // Getter for sample rate (Hz)
+    int getSampleRate() const { return sample_rate_; }
 
     /// Case-insensitive alnum-only match against patterns
     bool matches(const std::string& artist, const std::string& title) const {
@@ -142,6 +148,10 @@ private:
     std::vector<Instruction> instructions_;
     size_t nextIndex_ = 0;
 
+    // New header fields (defaults)
+    int64_t origin_sample_ = 0;
+    int sample_rate_ = 44100;
+
     /// Read TSV, group by comments, merge per-block, rebuild runtime list
     void loadAndOptimize(const std::string& fn) {
         std::ifstream in(fn);
@@ -170,46 +180,71 @@ private:
             if (line.empty() || std::all_of(line.begin(), line.end(), [](char c){ return std::isspace((unsigned char)c); }))
                 continue;
 
-            if (lineStage < 2) {
-                // Match Song / Match Artist
-                const char* expect = (lineStage==0 ? "Match Song" : "Match Artist");
-                auto &dest = (lineStage==0 ? matchTitles_ : matchArtists_);
-                parseMatchLine(line, expect, dest);
-                elements_.push_back({true, line, {}});
-                ++lineStage;
-                continue;
+            if (lineStage < 4) {
+                // Stage 0: Match Song
+                // Stage 1: Match Artist
+                // Stage 2: OriginSample
+                // Stage 3: SampleRate
+                if (lineStage == 0 || lineStage == 1) {
+                    const char* expect = (lineStage==0 ? "Match Song" : "Match Artist");
+                    auto &dest = (lineStage==0 ? matchTitles_ : matchArtists_);
+                    parseMatchLine(line, expect, dest);
+                    elements_.push_back({true, line, {}});
+                    ++lineStage;
+                    continue;
+                } else if (lineStage == 2) {
+                    // Expect: OriginSample <tab> <integer>
+                    auto cols = split(line, '\t');
+                    if (cols.empty() || cols[0] != "Origin Sample")
+                        throw std::runtime_error("Expected 'Origin Sample' line");
+                    if (cols.size() < 2) throw std::runtime_error("Origin Sample missing value");
+                    origin_sample_ = static_cast<int64_t>(std::stoll(cols[1]));
+                    elements_.push_back({true, line, {}});
+                    ++lineStage;
+                    continue;
+                } else { // lineStage == 3
+                    // Expect: SampleRate <tab> <integer>
+                    auto cols = split(line, '\t');
+                    if (cols.empty() || cols[0] != "Sample Rate")
+                        throw std::runtime_error("Expected 'Sample Rate' line");
+                    if (cols.size() < 2) throw std::runtime_error("Sample Rate missing value");
+                    sample_rate_ = std::stoi(cols[1]);
+                    elements_.push_back({true, line, {}});
+                    ++lineStage;
+                    continue;
+                }
             } else {
-                // data row
-                //std::cout << "Parsing data row: " << line << '\n';
+                 // data row
+                 //std::cout << "Parsing data row: " << line << '\n';
 
-                auto cols = split(line, '\t');
+                 auto cols = split(line, '\t');
 
-                // remove empty elements of cols
-                cols.erase(std::remove_if(cols.begin(), cols.end(),
-                    [](const std::string& s) { return s.empty(); }), cols.end());
+                 // remove empty elements of cols
+                 cols.erase(std::remove_if(cols.begin(), cols.end(),
+                     [](const std::string& s) { return s.empty(); }), cols.end());
 
-                if (cols.size() < 5 || (cols.size()-2)%3 != 0) {
-                    // print out all the elements of cols
-                    std::cout << "Columns: ";
-                    for (const auto& col : cols) {
-                        std::cout << col << "|";
-                    }
-                    std::cout << '\n';
+                 if (cols.size() < 5 || (cols.size()-2)%3 != 0) {
+                     // print out all the elements of cols
+                     std::cout << "Columns: ";
+                     for (const auto& col : cols) {
+                         std::cout << col << "|";
+                     }
+                     std::cout << '\n';
 
-                    throw std::runtime_error("Row in " + fn + "\nhas wrong number of populated cells");
-                }
-                double t = parseTime(cols[0], cols[1]);
-                ParsedLine pl{t,{}};
-                for (size_t i=2; i+2<cols.size(); i+=3) {
-                    pl.msgs.push_back({cols[i], cols[i+2][0], cols[i+1]});
-                }
-                currentBlock.rows.push_back(std::move(pl));
-            }
-        }
-        // flush last block
-        if (!currentBlock.rows.empty())
-            elements_.push_back(currentBlock);
-    }
+                     throw std::runtime_error("Row in " + fn + "\nhas wrong number of populated cells");
+                 }
+                 double t = parseTime(cols[0], cols[1]);
+                 ParsedLine pl{t,{}};
+                 for (size_t i=2; i+2<cols.size(); i+=3) {
+                     pl.msgs.push_back({cols[i], cols[i+2][0], cols[i+1]});
+                 }
+                 currentBlock.rows.push_back(std::move(pl));
+             }
+         }
+         // flush last block
+         if (!currentBlock.rows.empty())
+             elements_.push_back(currentBlock);
+     }
 
     /// After loadAndOptimize, build global instruction list (merged & sorted)
     void buildRuntimeInstructions() {
@@ -292,7 +327,7 @@ private:
                         const std::string& c1)
     {
         double base;
-        auto dot = c0.find('.');
+        auto dot = c0.find('.'); // this can handle both the beat number and bar.beat formats. 
         if (dot != std::string::npos) {
             int bar  = std::stoi(c0.substr(0, dot));
             int beat = std::stoi(c0.substr(dot+1));

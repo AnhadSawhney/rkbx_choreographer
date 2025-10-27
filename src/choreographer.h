@@ -43,10 +43,10 @@ public:
         lastBeatTime_ = std::chrono::high_resolution_clock::now();
         // convert the current beat to bar.beat and print it using beatNumberToBarBeat(currentBeat_);
 
-        //auto [bar, beat] = beatNumberToBarBeat(beatNumber);
+        auto [bar, beat] = beatNumberToBarBeat(beatNumber);
                     
         // Write bar.beat and fraction as separate columns
-        //std::cout << "Bar.beat:" << bar << '.' << beat << '\n';
+        std::cout << "Bar.beat:" << bar << '.' << beat << '\n';
     }
 
     // Callback: Beat fraction changed
@@ -107,6 +107,16 @@ public:
         if (!activeChoreo) {
             std::cout << "No choreography found for: " << artist << " - " << title << "\n";
         }
+    }
+
+    // Get origin sample for currently active choreography (or default 0)
+    int64_t getActiveOriginSample() const {
+        return activeChoreo ? activeChoreo->getOriginSample() : 0;
+    }
+
+    // Get sample rate for currently active choreography (or default 44100)
+    int getActiveSampleRate() const {
+        return activeChoreo ? activeChoreo->getSampleRate() : 44100;
     }
 
 private:

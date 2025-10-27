@@ -10,6 +10,8 @@
 #each file must have match song and match artist at the top (excluding comments). 								
 Match Song	Snakebite							
 Match Artist	Viperactive							
+Origin Sample	56668							
+Sample Rate	44100							
 6.1	0	/composition/decks/1/select	1	i		
 6.1	0	/composition/layers/1/clips/2/connect	1	i				
 7.1	0	/composition/layers/1/clips/3/connect	1	i				

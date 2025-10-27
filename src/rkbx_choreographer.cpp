@@ -51,10 +51,15 @@ int main(int argc, char* argv[]) {
     std::string src_addr = "0.0.0.0:0";
     std::string dst_addr = "127.0.0.1:6669";
     std::string choreo_folder = "";
+    float delay_seconds = 0.0f;
 
     // 2) simple flag parse
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
+        if (a == "-d" && i + 1 < argc) {
+            delay_seconds = std::stof(argv[++i]);
+            continue;
+        }
         if (a == "-u") {
             std::cout << "Updating offsets...\n";
             system("curl offsets https://raw.githubusercontent.com/AnhadSawhney/rkbx_choreographer/master/offsets.txt");
@@ -80,6 +85,7 @@ Usage:
   -v <ver>  target RB version (default: )" << target_version << "\n"
                 "-s <src>  source UDP (host:port)\n"
                 "-t <dst>  target UDP (host:port)\n"
+                "-d <sec>  delay compensation in seconds (float)\n"
                 "-c <dir>  choreography folder\n"
                 "Press i/k to adjust offset by ±1ms, c to quit.\n";
             return 0;
@@ -127,7 +133,7 @@ Usage:
     //link.enable(true);
 
     // 5) BeatKeeper
-    BeatKeeper keeper(it->second, &choreo);
+    BeatKeeper keeper(it->second, &choreo, delay_seconds);
 
     using clk = std::chrono::high_resolution_clock;
     auto last = clk::now();
