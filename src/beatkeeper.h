@@ -269,7 +269,7 @@ public:
             last_beat_ = rb_.master_beats;
             
             if (choreo_) {
-                //choreo_->onMasterTrackChanged(current_master_info);
+                choreo_->onMasterTrackChanged(current_master_info);
                 choreo_->onNewBeat(rb_.master_beats);
             }
         }
@@ -323,7 +323,7 @@ public:
         // Always send beat fraction update with actual_delta time
         if (choreo_) choreo_->onBeatFraction(getBeatFraction(), actual_delta);
 
-        std::cout << "sample:" << current_sample << " bpm:" << rb_.master_bpm << " beat:" << master_beat_index << " frac:" << getBeatFraction() << "\n";
+        //std::cout << "sample:" << current_sample << " bpm:" << rb_.master_bpm << " beat:" << master_beat_index << " frac:" << getBeatFraction() << "\n";
     }
 
     float getBeatFraction() const {

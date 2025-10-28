@@ -43,10 +43,10 @@ public:
         lastBeatTime_ = std::chrono::high_resolution_clock::now();
         // convert the current beat to bar.beat and print it using beatNumberToBarBeat(currentBeat_);
 
-        auto [bar, beat] = beatNumberToBarBeat(beatNumber);
+        //auto [bar, beat] = beatNumberToBarBeat(beatNumber);
                     
         // Write bar.beat and fraction as separate columns
-        std::cout << "Bar.beat:" << bar << '.' << beat << '\n';
+        //std::cout << "Bar.beat:" << bar << '.' << beat << '\n';
     }
 
     // Callback: Beat fraction changed
@@ -67,7 +67,7 @@ public:
                 updateLastMessage(p, currentTime);
                 
                 auto [bar, beat] = beatNumberToBarBeat(currentBeat_);
-                //std::cout << "Send at: " << bar << '.' << beat << '.' << static_cast<int>(beatFraction * 100) << " dt: " << deltaTime << '\n';
+                std::cout << "Send at: " << bar << '.' << beat << '.' << static_cast<int>(beatFraction * 100) << " dt: " << deltaTime << '\n';
             }
         } else {
             // flush the stream and buffer
@@ -87,8 +87,8 @@ public:
     }
 
     // Callback: Track/Artist changed on master deck
-    void onMasterTrackChanged(const std::string& artist, const std::string& title) {
-        std::cout << "Master track changed: " << artist << " - " << title << "\n";
+    void onMasterTrackChanged(const std::string& info) {
+        std::cout << "============= Master track changed =============\n" << info << "\n";
         
         // Clear last message when track changes
         lastMessageData_.clear();
@@ -97,15 +97,15 @@ public:
         // Find matching choreo parser
         activeChoreo = nullptr;
         for (auto& parser : choreoParsers) {
-            if (parser->matches(artist, title)) {
+            if (parser->matches(info)) {
                 activeChoreo = parser.get();
-                std::cout << "Found matching choreography for: " << artist << " - " << title << "\n";
+                std::cout << "============= Found matching choreography =============\n";
                 break;
             }
         }
         
         if (!activeChoreo) {
-            std::cout << "No choreography found for: " << artist << " - " << title << "\n";
+            std::cout << "============= No choreography found =============\n";
         }
     }
 

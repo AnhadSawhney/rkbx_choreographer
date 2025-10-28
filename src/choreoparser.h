@@ -50,9 +50,10 @@ public:
     int getSampleRate() const { return sample_rate_; }
 
     /// Case-insensitive alnum-only match against patterns
-    bool matches(const std::string& artist, const std::string& title) const {
-        return anyMatch(matchArtists_, artist)
-            && anyMatch(matchTitles_,  title);
+    // info string looks like: "Track Title: x\nArtist: y\nAlbum: z"
+    bool matches(const std::string& info) const {
+        return anyMatch(matchArtists_, info) &&
+               anyMatch(matchTitles_,  info);
     }
 
     /// Update by beat position. deltaBeat in beats
@@ -348,7 +349,7 @@ private:
             default: /* extend for 'd','b',... */ break;
         }
 
-        //std::cout << "OSC: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
+        std::cout << "OSC: " << m.address << " type: " << m.type << " data: " << m.data << '\n';
     }
 
     static std::string normalize(std::string s) {

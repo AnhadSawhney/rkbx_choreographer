@@ -85,7 +85,7 @@ Usage:
   -v <ver>  target RB version (default: )" << target_version << "\n"
                 "-s <src>  source UDP (host:port)\n"
                 "-t <dst>  target UDP (host:port)\n"
-                "-d <sec>  delay compensation in seconds (float)\n"
+                "-d <sec>  delay compensation: how long does it take for resolume to change once triggered by rekordbox\n" 
                 "-c <dir>  choreography folder\n"
                 "Press i/k to adjust offset by ±1ms, c to quit.\n";
             return 0;
